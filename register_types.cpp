@@ -8,5 +8,4 @@ void register_sqlite_types() {
 }
 
 void unregister_sqlite_types() {
-   // Nothing to do here in this example.
 }
