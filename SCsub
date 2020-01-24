@@ -1,0 +1,8 @@
+Import('env')
+
+module_env = env.Clone()
+
+module_env.Prepend(CPPPATH=['#thirdparty/sqlite/thirdparty/sqlite'])
+
+module_env.add_source_files(env.modules_sources, "thirdparty/sqlite/*.c")
+module_env.add_source_files(env.modules_sources, "*.cpp")
