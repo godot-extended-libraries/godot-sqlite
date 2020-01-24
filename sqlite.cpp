@@ -1,4 +1,5 @@
 #include "sqlite.h"
+#include "core/bind/core_bind.h"
 #include "core/os/os.h"
 #include "editor/project_settings_editor.h"
 
@@ -6,10 +7,27 @@ SQLite::SQLite() {
 	db = nullptr;
 	memory_read = false;
 }
-
+/*
+	Open a database file.
+	If this is running outside of the editor, databases under res:// are assumed to be packed.
+	@param path The database resource path.
+	@return status
+*/
 bool SQLite::open(String path) {
 	if (!path.strip_edges().length())
 		return false;
+
+	if (!Engine::get_singleton()->is_editor_hint() && path.begins_with("res://")) {
+		Ref<_File> dbfile;
+		dbfile.instance();
+		if (dbfile->open(path, _File::READ) != Error::OK) {
+			print_error("Cannot open packed database!");
+			return false;
+		}
+		int64_t size = dbfile->get_len();
+		PoolByteArray buffer = dbfile->get_buffer(size);
+		return open_buffered(path, buffer, size);
+	}
 
 	String real_path = ProjectSettings::get_singleton()->globalize_path(path.strip_edges());
 
@@ -142,7 +160,7 @@ Array SQLite::fetch_rows(String statement, PoolStringArray args, int result_type
 
 	// Check parameter count
 	int param_count = sqlite3_bind_parameter_count(stmt);
-	if (param_count != args.size()) {	
+	if (param_count != args.size()) {
 		OS::get_singleton()->print("Fetch failed, expected %d args, got %s", param_count, args.join("").c_str());
 		return result;
 	}
