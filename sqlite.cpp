@@ -34,7 +34,7 @@ bool SQLite::open(String path) {
 	int result = sqlite3_open(real_path.utf8().get_data(), &db);
 
 	if (result != SQLITE_OK) {
-		print_line("Cannot open database!");
+		print_error("Cannot open database!");
 		return false;
 	}
 
@@ -67,7 +67,7 @@ bool SQLite::open_buffered(String name, PoolByteArray buffers, int64_t size) {
 	int err = spmemvfs_open_db(&p_db, name.utf8().get_data(), p_mem);
 
 	if (err != SQLITE_OK || p_db.mem != p_mem) {
-		print_line("Cannot open buffered database!");
+		print_error("Cannot open buffered database!");
 		return false;
 	}
 
@@ -79,7 +79,7 @@ void SQLite::close() {
 	if (db) {
 		// Cannot close database!
 		if (sqlite3_close_v2(db) != SQLITE_OK) {
-			print_line("Cannot close database!");
+			print_error("Cannot close database!");
 		} else {
 			db = nullptr;
 		}
@@ -98,7 +98,7 @@ sqlite3_stmt *SQLite::prepare(const char *query) {
 	sqlite3 *dbs = get_handler();
 
 	if (!dbs) {
-		print_line("Cannot prepare query! Database is not opened.");
+		print_error("Cannot prepare query! Database is not opened.");
 		return nullptr;
 	}
 
@@ -108,7 +108,7 @@ sqlite3_stmt *SQLite::prepare(const char *query) {
 
 	// Cannot prepare query!
 	if (result != SQLITE_OK) {
-		print_line("SQL Error: " + String(sqlite3_errmsg(dbs)));
+		print_error("SQL Error: " + String(sqlite3_errmsg(dbs)));
 		return nullptr;
 	}
 
