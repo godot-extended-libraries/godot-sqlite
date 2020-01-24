@@ -5,8 +5,7 @@ func _ready():
 	var db = SQLite.new();
 	
 	# Open database
-	if (!db.open_db("res://godot.sql")):
-		print("Cannot open database.");
+	if (!db.open("user://godot.sqlite")):
 		return;
 	
 	var query = "";

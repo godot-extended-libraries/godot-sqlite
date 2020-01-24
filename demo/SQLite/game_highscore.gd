@@ -11,7 +11,7 @@ func _ready():
 	db = SQLite.new();
 	
 	# Open the database
-	if (not db.open("user://player_stats.sql")):
+	if (not db.open("user://player_stats.sqlite")):
 		return;
 	
 	open = true;
@@ -51,7 +51,7 @@ func set_highscore(score):
 		db.query_with_args("UPDATE highscore SET score=? WHERE id=?;", [highscore, row_id]);
 	else:
 		db.query_with_args("INSERT INTO highscore (score) VALUES (?);", [row_id]);
-		row_id = db.fetch_array("SELECT last_insert_rowid()", [])[0]['last_insert_rowid()'];
+		row_id = db.fetch_array_with_args("SELECT last_insert_rowid()", [])[0]['last_insert_rowid()'];
 
 func get_highscore():
 	if not open:
