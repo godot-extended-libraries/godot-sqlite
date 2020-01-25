@@ -23,7 +23,7 @@ mv sqlite godot/modules/
 ## Example usage
 
 - [SQL Queries](https://github.com/godot-extended-libraries/godot-sqlite/blob/master/demo/SQLite/game_highscore.gd)
-- [Game Highscore](https://raw.githubusercontent.com/godot-extended-libraries/godot-sqlite/master/demo/SQLite/item_database.gd)
+- [Game Highscore](https://github.com/godot-extended-libraries/godot-sqlite/blob/master/demo/SQLite/item_database.gd)
 - [Item Libraries](https://github.com/godot-extended-libraries/godot-sqlite/blob/master/demo/SQLite/item_database.gd)
 
 ## Attribution
