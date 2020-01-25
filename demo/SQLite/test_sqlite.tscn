@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://SQLite/item_database.gd" type="Script" id=1]
 [ext_resource path="res://SQLite/sql_queries.gd" type="Script" id=2]
 [ext_resource path="res://SQLite/game_highscore.gd" type="Script" id=3]
+[ext_resource path="res://SQLite/blob_data.gd" type="Script" id=4]
 
 [node name="Node" type="Node"]
 
@@ -14,3 +15,6 @@ script = ExtResource( 2 )
 
 [node name="GameHighScore" type="Node" parent="."]
 script = ExtResource( 3 )
+
+[node name="BLOBData" type="Node" parent="."]
+script = ExtResource( 4 )

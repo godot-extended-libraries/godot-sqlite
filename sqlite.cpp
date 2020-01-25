@@ -115,7 +115,62 @@ sqlite3_stmt *SQLite::prepare(const char *query) {
 	return stmt;
 }
 
-bool SQLite::query_with_args(String query, PoolStringArray args) {
+bool SQLite::bind_args(sqlite3_stmt *stmt, Array args)
+{
+	// Check parameter count
+	int param_count = sqlite3_bind_parameter_count(stmt);
+	if(param_count != args.size())
+	{
+		OS::get_singleton()->print("Query failed, expected %d arguments, got %d", param_count, args.size());
+		return false;
+	}
+
+	/**
+	 * SQLite data types:
+	 * - NULL
+	 * - INTEGER (signed, max 8 bytes)
+	 * - REAL (stored as a double-precision float)
+	 * - TEXT (stored in database encoding of UTF-8, UTF-16BE or UTF-16LE)
+	 * - BLOB (1:1 storage)
+	 */
+
+	for(int i = 0; i < param_count; i++)
+	{
+		int retcode;
+		switch(args[i].get_type())
+		{
+			case Variant::Type::NIL:
+				retcode = sqlite3_bind_null(stmt, i+1);
+				break;
+			case Variant::Type::BOOL:
+			case Variant::Type::INT:
+				retcode = sqlite3_bind_int(stmt, i+1, (int)args[i]);
+				break;
+			case Variant::Type::REAL:
+				retcode = sqlite3_bind_double(stmt, i+1, (double)args[i]);
+				break;
+			case Variant::Type::STRING:
+				retcode = sqlite3_bind_text(stmt, i+1, String(args[i]).utf8().get_data(), -1, SQLITE_TRANSIENT);
+				break;
+			case Variant::Type::POOL_BYTE_ARRAY:
+				retcode = sqlite3_bind_blob(stmt, i+1, PoolByteArray(args[i]).read().ptr(), PoolByteArray(args[i]).size(), SQLITE_TRANSIENT);
+				break;
+			default:
+				OS::get_singleton()->print("SQLite was passed unhandled Variant with TYPE_* enum %d. Please serialize your object into a String or a PoolByteArray.", args[i].get_type());
+				return false;
+		}
+
+		if(retcode != SQLITE_OK)
+		{
+			OS::get_singleton()->print("Query failed, an error occured while binding argument %d of %d (SQLite errcode %d)", i+1, args.size(), retcode);
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool SQLite::query_with_args(String query, Array args) {
 	sqlite3_stmt *stmt = prepare(query.utf8().get_data());
 
 	// Failed to prepare the query
@@ -123,15 +178,11 @@ bool SQLite::query_with_args(String query, PoolStringArray args) {
 		return false;
 	}
 
-	int param_count = sqlite3_bind_parameter_count(stmt);
-	if (param_count != args.size()) {
-		String output = args.join("");
-		OS::get_singleton()->print("Query failed, expected %d args, got %s", param_count, output.c_str());
+	// Error occurred during argument binding
+	if (!bind_args(stmt, args)) {
+		sqlite3_finalize(stmt);
 		return false;
 	}
-
-	for (int i = 0; i < param_count; i++)
-		sqlite3_bind_text(stmt, i + 1, args[i].utf8().get_data(), -1, SQLITE_TRANSIENT);
 
 	// Evaluate the sql query
 	sqlite3_step(stmt);
@@ -141,10 +192,10 @@ bool SQLite::query_with_args(String query, PoolStringArray args) {
 }
 
 bool SQLite::query(String query) {
-	return this->query_with_args(query, PoolStringArray());
+	return this->query_with_args(query, Array());
 }
 
-Array SQLite::fetch_rows(String statement, PoolStringArray args, int result_type) {
+Array SQLite::fetch_rows(String statement, Array args, int result_type) {
 	Array result;
 
 	// Empty statement
@@ -158,16 +209,12 @@ Array SQLite::fetch_rows(String statement, PoolStringArray args, int result_type
 		return result;
 	}
 
-	// Check parameter count
-	int param_count = sqlite3_bind_parameter_count(stmt);
-	if (param_count != args.size()) {
-		OS::get_singleton()->print("Fetch failed, expected %d args, got %s", param_count, args.join("").c_str());
+	// Bind arguments
+	if(!bind_args(stmt, args))
+	{
+		sqlite3_finalize(stmt);
 		return result;
 	}
-
-	// Bind parameters
-	for (int i = 0; i < param_count; i++)
-		sqlite3_bind_text(stmt, i + 1, args[i].utf8().get_data(), -1, SQLITE_TRANSIENT);
 
 	// Fetch rows
 	while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -211,6 +258,16 @@ Dictionary SQLite::parse_row(sqlite3_stmt *stmt, int result_type) {
 			case SQLITE_TEXT:
 				value = Variant((char *)sqlite3_column_text(stmt, i));
 				break;
+			
+			case SQLITE_BLOB:
+				{
+				PoolByteArray arr;
+				int size = sqlite3_column_bytes(stmt, i);
+				arr.resize(size);
+				memcpy(arr.write().ptr(), sqlite3_column_blob(stmt, i), size);
+				value = Variant(arr);
+				break;
+				}
 
 			default:
 				break;
@@ -231,18 +288,18 @@ Dictionary SQLite::parse_row(sqlite3_stmt *stmt, int result_type) {
 }
 
 Array SQLite::fetch_array(String query) {
-	return fetch_rows(query, PoolStringArray(), RESULT_BOTH);
+	return fetch_rows(query, Array(), RESULT_BOTH);
 }
 
-Array SQLite::fetch_array_with_args(String query, PoolStringArray args) {
+Array SQLite::fetch_array_with_args(String query, Array args) {
 	return fetch_rows(query, args, RESULT_BOTH);
 }
 
 Array SQLite::fetch_assoc(String query) {
-	return fetch_rows(query, PoolStringArray(), RESULT_ASSOC);
+	return fetch_rows(query, Array(), RESULT_ASSOC);
 }
 
-Array SQLite::fetch_assoc_with_args(String query, PoolStringArray args) {
+Array SQLite::fetch_assoc_with_args(String query, Array args) {
 	return fetch_rows(query, args, RESULT_ASSOC);
 }
 

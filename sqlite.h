@@ -20,9 +20,10 @@ private:
 	bool memory_read;
 
 	sqlite3_stmt *prepare(const char *statement);
-	Array fetch_rows(String query, PoolStringArray args, int result_type = RESULT_BOTH);
+	Array fetch_rows(String query, Array args, int result_type = RESULT_BOTH);
 	Dictionary parse_row(sqlite3_stmt *stmt, int result_type);
 	sqlite3 *get_handler() { return (memory_read ? p_db.handle : db); }
+	bool bind_args(sqlite3_stmt *stmt, Array args);
 
 protected:
 	static void _bind_methods();
@@ -45,10 +46,10 @@ public:
 	void close();
 
 	bool query(String statement);
-	bool query_with_args(String statement, PoolStringArray args);
+	bool query_with_args(String statement, Array args);
 	Array fetch_array(String statement);
-	Array fetch_array_with_args(String statement, PoolStringArray args);
+	Array fetch_array_with_args(String statement, Array args);
 	Array fetch_assoc(String statement);
-	Array fetch_assoc_with_args(String statement, PoolStringArray args);
+	Array fetch_assoc_with_args(String statement, Array args);
 };
 #endif
