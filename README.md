@@ -8,7 +8,7 @@ Download the latest [release](https://github.com/godot-extended-libraries/godot-
 
 ## Git Installation
 
-Download using git to your git repo.
+Download using git.
 
 ```
 git clone https://github.com/godot-extended-libraries/godot-sqlite.git sqlite
