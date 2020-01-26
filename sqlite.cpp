@@ -309,13 +309,13 @@ SQLite::~SQLite() {
 }
 
 void SQLite::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("open"), &SQLite::open);
-	ClassDB::bind_method(D_METHOD("open_buffered"), &SQLite::open_buffered);
-	ClassDB::bind_method(D_METHOD("query"), &SQLite::query);
-	ClassDB::bind_method(D_METHOD("query_with_args"), &SQLite::query_with_args);
+	ClassDB::bind_method(D_METHOD("open", "path"), &SQLite::open);
+	ClassDB::bind_method(D_METHOD("open_buffered", "path", "buffers", "size"), &SQLite::open_buffered);
+	ClassDB::bind_method(D_METHOD("query", "statement"), &SQLite::query);
+	ClassDB::bind_method(D_METHOD("query_with_args", "statement", "args"), &SQLite::query_with_args);
 	ClassDB::bind_method(D_METHOD("close"), &SQLite::close);
-	ClassDB::bind_method(D_METHOD("fetch_array"), &SQLite::fetch_array);
-	ClassDB::bind_method(D_METHOD("fetch_array_with_args"), &SQLite::fetch_array_with_args);
-	ClassDB::bind_method(D_METHOD("fetch_assoc"), &SQLite::fetch_assoc);
-	ClassDB::bind_method(D_METHOD("fetch_assoc_with_args"), &SQLite::fetch_assoc_with_args);
+	ClassDB::bind_method(D_METHOD("fetch_array", "statement"), &SQLite::fetch_array);
+	ClassDB::bind_method(D_METHOD("fetch_array_with_args", "statement", "args"), &SQLite::fetch_array_with_args);
+	ClassDB::bind_method(D_METHOD("fetch_assoc", "statement"), &SQLite::fetch_assoc);
+	ClassDB::bind_method(D_METHOD("fetch_assoc_with_args", "statement", "args"), &SQLite::fetch_assoc_with_args);
 }
