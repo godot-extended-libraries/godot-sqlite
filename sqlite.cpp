@@ -121,7 +121,7 @@ bool SQLite::bind_args(sqlite3_stmt *stmt, Array args)
 	int param_count = sqlite3_bind_parameter_count(stmt);
 	if(param_count != args.size())
 	{
-		OS::get_singleton()->print("Query failed, expected %d arguments, got %d", param_count, args.size());
+		print_error("Query failed; expected " + itos(param_count) + " arguments, got " + itos(args.size()));
 		return false;
 	}
 
@@ -156,13 +156,13 @@ bool SQLite::bind_args(sqlite3_stmt *stmt, Array args)
 				retcode = sqlite3_bind_blob(stmt, i+1, PoolByteArray(args[i]).read().ptr(), PoolByteArray(args[i]).size(), SQLITE_TRANSIENT);
 				break;
 			default:
-				OS::get_singleton()->print("SQLite was passed unhandled Variant with TYPE_* enum %d. Please serialize your object into a String or a PoolByteArray.", args[i].get_type());
+				print_error("SQLite was passed unhandled Variant with TYPE_* enum " + itos(args[i].get_type()) + ". Please serialize your object into a String or a PoolByteArray.\n");
 				return false;
 		}
 
 		if(retcode != SQLITE_OK)
 		{
-			OS::get_singleton()->print("Query failed, an error occured while binding argument %d of %d (SQLite errcode %d)", i+1, args.size(), retcode);
+			print_error("Query failed, an error occured while binding argument" + itos(i+1) + " of " + itos(args.size()) + " (SQLite errcode " + itos(retcode) + ")");
 			return false;
 		}
 	}
