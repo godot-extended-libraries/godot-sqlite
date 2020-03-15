@@ -25,7 +25,7 @@ bool SQLite::open(String path) {
 			return false;
 		}
 		int64_t size = dbfile->get_len();
-		PoolByteArray buffer = dbfile->get_buffer(size);
+		PackedByteArray buffer = dbfile->get_buffer(size);
 		return open_buffered(path, buffer, size);
 	}
 
@@ -47,7 +47,7 @@ bool SQLite::open(String path) {
   @param size Size of the database; 
   @return status
 */
-bool SQLite::open_buffered(String name, PoolByteArray buffers, int64_t size) {
+bool SQLite::open_buffered(String name, PackedByteArray buffers, int64_t size) {
 	if (!name.strip_edges().length()) {
 		return false;
 	}
@@ -59,7 +59,7 @@ bool SQLite::open_buffered(String name, PoolByteArray buffers, int64_t size) {
 	spmembuffer_t *p_mem = (spmembuffer_t *)calloc(1, sizeof(spmembuffer_t));
 	p_mem->total = p_mem->used = size;
 	p_mem->data = (char *)malloc(size + 1);
-	memcpy(p_mem->data, buffers.read().ptr(), size);
+	memcpy(p_mem->data, buffers.ptr(), size);
 	p_mem->data[size] = '\0';
 
 	//
@@ -115,12 +115,10 @@ sqlite3_stmt *SQLite::prepare(const char *query) {
 	return stmt;
 }
 
-bool SQLite::bind_args(sqlite3_stmt *stmt, Array args)
-{
+bool SQLite::bind_args(sqlite3_stmt *stmt, Array args) {
 	// Check parameter count
 	int param_count = sqlite3_bind_parameter_count(stmt);
-	if(param_count != args.size())
-	{
+	if (param_count != args.size()) {
 		print_error("Query failed; expected " + itos(param_count) + " arguments, got " + itos(args.size()));
 		return false;
 	}
@@ -134,35 +132,32 @@ bool SQLite::bind_args(sqlite3_stmt *stmt, Array args)
 	 * - BLOB (1:1 storage)
 	 */
 
-	for(int i = 0; i < param_count; i++)
-	{
+	for (int i = 0; i < param_count; i++) {
 		int retcode;
-		switch(args[i].get_type())
-		{
+		switch (args[i].get_type()) {
 			case Variant::Type::NIL:
-				retcode = sqlite3_bind_null(stmt, i+1);
+				retcode = sqlite3_bind_null(stmt, i + 1);
 				break;
 			case Variant::Type::BOOL:
 			case Variant::Type::INT:
-				retcode = sqlite3_bind_int(stmt, i+1, (int)args[i]);
+				retcode = sqlite3_bind_int(stmt, i + 1, (int)args[i]);
 				break;
-			case Variant::Type::REAL:
-				retcode = sqlite3_bind_double(stmt, i+1, (double)args[i]);
+			case Variant::Type::FLOAT:
+				retcode = sqlite3_bind_double(stmt, i + 1, (double)args[i]);
 				break;
 			case Variant::Type::STRING:
-				retcode = sqlite3_bind_text(stmt, i+1, String(args[i]).utf8().get_data(), -1, SQLITE_TRANSIENT);
+				retcode = sqlite3_bind_text(stmt, i + 1, String(args[i]).utf8().get_data(), -1, SQLITE_TRANSIENT);
 				break;
-			case Variant::Type::POOL_BYTE_ARRAY:
-				retcode = sqlite3_bind_blob(stmt, i+1, PoolByteArray(args[i]).read().ptr(), PoolByteArray(args[i]).size(), SQLITE_TRANSIENT);
+			case Variant::Type::PACKED_BYTE_ARRAY:
+				retcode = sqlite3_bind_blob(stmt, i + 1, PackedByteArray(args[i]).ptr(), PackedByteArray(args[i]).size(), SQLITE_TRANSIENT);
 				break;
 			default:
 				print_error("SQLite was passed unhandled Variant with TYPE_* enum " + itos(args[i].get_type()) + ". Please serialize your object into a String or a PoolByteArray.\n");
 				return false;
 		}
 
-		if(retcode != SQLITE_OK)
-		{
-			print_error("Query failed, an error occured while binding argument" + itos(i+1) + " of " + itos(args.size()) + " (SQLite errcode " + itos(retcode) + ")");
+		if (retcode != SQLITE_OK) {
+			print_error("Query failed, an error occured while binding argument" + itos(i + 1) + " of " + itos(args.size()) + " (SQLite errcode " + itos(retcode) + ")");
 			return false;
 		}
 	}
@@ -210,8 +205,7 @@ Array SQLite::fetch_rows(String statement, Array args, int result_type) {
 	}
 
 	// Bind arguments
-	if(!bind_args(stmt, args))
-	{
+	if (!bind_args(stmt, args)) {
 		sqlite3_finalize(stmt);
 		return result;
 	}
@@ -255,22 +249,20 @@ Dictionary SQLite::parse_row(sqlite3_stmt *stmt, int result_type) {
 				value = Variant(sqlite3_column_double(stmt, i));
 				break;
 
-			case SQLITE_TEXT:
-				{
+			case SQLITE_TEXT: {
 				int size = sqlite3_column_bytes(stmt, i);
 				String str = String::utf8((const char *)sqlite3_column_text(stmt, i), size);
 				value = Variant(str);
 				break;
-				}
-			case SQLITE_BLOB:
-				{
-				PoolByteArray arr;
+			}
+			case SQLITE_BLOB: {
+				PackedByteArray arr;
 				int size = sqlite3_column_bytes(stmt, i);
 				arr.resize(size);
-				memcpy(arr.write().ptr(), sqlite3_column_blob(stmt, i), size);
+				memcpy((void *)arr.ptr(), sqlite3_column_blob(stmt, i), size);
 				value = Variant(arr);
 				break;
-				}
+			}
 
 			default:
 				break;
