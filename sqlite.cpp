@@ -256,9 +256,12 @@ Dictionary SQLite::parse_row(sqlite3_stmt *stmt, int result_type) {
 				break;
 
 			case SQLITE_TEXT:
-				value = Variant((char *)sqlite3_column_text(stmt, i));
+				{
+				int size = sqlite3_column_bytes(stmt, i);
+				String str = String::utf8((const char *)sqlite3_column_text(stmt, i), size);
+				value = Variant(str);
 				break;
-			
+				}
 			case SQLITE_BLOB:
 				{
 				PoolByteArray arr;
