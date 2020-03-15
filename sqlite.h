@@ -42,7 +42,7 @@ public:
 
 	// methods
 	bool open(String path);
-	bool open_buffered(String name, PoolByteArray buffers, int64_t size);
+	bool open_buffered(String name, PackedByteArray buffers, int64_t size);
 	void close();
 
 	bool query(String statement);
