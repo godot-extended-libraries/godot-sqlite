@@ -2,6 +2,7 @@
 #include "core/bind/core_bind.h"
 #include "core/os/os.h"
 #include "editor/project_settings_editor.h"
+#include <stdlib.h>
 
 SQLite::SQLite() {
 	db = nullptr;
