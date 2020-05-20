@@ -2,6 +2,7 @@
 #include "core/bind/core_bind.h"
 #include "core/os/os.h"
 #include "editor/project_settings_editor.h"
+#include "thirdparty/torrent/sqltorrent.h"
 #include <stdlib.h>
 
 Array fast_parse_row(sqlite3_stmt *stmt) {
@@ -181,6 +182,7 @@ void SQLiteQuery::_bind_methods() {
 SQLite::SQLite() {
 	db = nullptr;
 	memory_read = false;
+	sqltorrent_init(0);
 }
 /*
 	Open a database file.
@@ -254,6 +256,42 @@ bool SQLite::open_buffered(String name, PoolByteArray buffers, int64_t size) {
 	}
 
 	memory_read = true;
+	return true;
+}
+
+/*
+  Open the torrent.
+  @param link Torrent link.
+  @param buffers The database buffer.
+  @param size Size of the database;
+*/
+bool SQLite::open_torrent(String link, String path, PoolByteArray buffers, int64_t size) {
+	if (!path.strip_edges().length())
+	return false;
+
+	if (!Engine::get_singleton()->is_editor_hint() && path.begins_with("res://")) {
+		Ref<_File> dbfile;
+		dbfile.instance();
+		if (dbfile->open(path, _File::READ) != Error::OK) {
+			print_error("Cannot open packed database!");
+			return false;
+		}
+		int64_t size = dbfile->get_len();
+		PoolByteArray buffer = dbfile->get_buffer(size);
+		return open_buffered(path, buffer, size);
+	}
+
+	String real_path = ProjectSettings::get_singleton()->globalize_path(path.strip_edges());
+
+	sqltorrent_init(true);
+	sqlite3* db;
+	int result = sqlite3_open_v2(link.utf8().get_data(), &db, SQLITE_OPEN_READONLY, NULL);
+
+	if (result != SQLITE_OK) {
+		print_error("Cannot open database!");
+		return false;
+	}
+
 	return true;
 }
 

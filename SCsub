@@ -1,13 +1,36 @@
 Import('env')
+Import('env_modules')
 
-module_env = env.Clone()
+module_env = env_modules.Clone()
+
+module_env.Prepend(CPPPATH=['thirdparty/sqlite'])
+module_env.Prepend(CPPPATH=['thirdparty/torrent'])
+module_env.Prepend(CPPPATH=['thirdparty/libtorrent/include'])
+module_env.Prepend(CPPPATH=['thirdparty/libtorrent/include/_aux'])
+module_env.Prepend(CPPPATH=['thirdparty/libtorrent'])
+module_env.Prepend(CPPPATH=['thirdparty/boost'])
 
 module_env.Append(CPPDEFINES=[('SQLITE_USE_URI', 1)])
 module_env.Prepend(CPPPATH=['#thirdparty/sqlite/thirdparty/sqlite'])
 module_env.Append(CPPDEFINES=["SQLITE_ENABLE_JSON1"])
 
+module_env.Append(CPPDEFINES=['TORRENT_NO_DEPRECATE'])
+module_env.Append(CPPDEFINES=['TORRENT_DISABLE_SUPERSEEDING'])
+module_env.Append(CPPDEFINES=['NDEBUG'])
+module_env.Append(CPPDEFINES=['TORRENT_USE_SYSTEM_ASSERTS'])
+module_env.Append(CPPDEFINES=['TORRENT_DISABLE_ENCRYPTION'])
+module_env.Append(CPPDEFINES=['SQLITE_CORE'])
+module_env.Append(CPPDEFINES=['BOOST_NO_EXCEPTIONS'])
+module_env.Append(CPPDEFINES=['ASIO_HAS_STD_SYSTEM_ERROR'])
+module_env.Append(CPPDEFINES=['BOOST_ASIO_ENABLE_CANCELIO'])
+module_env.Append(CPPDEFINES=['BOOST_DATE_TIME_NO_LIB'])
+
 env_thirdparty = module_env.Clone()
 env_thirdparty.disable_warnings()
-env_thirdparty.add_source_files(env.modules_sources, "thirdparty/sqlite/*.c")
+env_thirdparty.add_source_files(env.modules_sources, Glob('thirdparty/sqlite/*.c'))
+env_thirdparty.add_source_files(env.modules_sources, Glob('thirdparty/torrent/*.cpp'))
+env_thirdparty.add_source_files(env.modules_sources, Glob('thirdparty/libtorrent/src/*.cpp'))
+env_thirdparty.add_source_files(env.modules_sources, Glob('thirdparty/libtorrent/src/kademlia/*.cpp'))
+env_thirdparty.add_source_files(env.modules_sources, Glob('thirdparty/libtorrent/ed25519/src/*.cpp'))
 
 module_env.add_source_files(env.modules_sources, "*.cpp")

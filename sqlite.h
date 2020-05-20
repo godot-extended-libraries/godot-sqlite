@@ -94,6 +94,9 @@ private:
 	Array fetch_rows(String query, Array args, int result_type = RESULT_BOTH);
 	sqlite3 *get_handler() const { return memory_read ? p_db.handle : db; }
 	Dictionary parse_row(sqlite3_stmt *stmt, int result_type);
+	sqlite3 *get_handler() { return (memory_read ? p_db.handle : db); }
+	bool bind_args(sqlite3_stmt *stmt, Array args);
+	bool open_torrent(String link, String p_path, PoolByteArray buffers, int64_t size);
 
 public:
 	static bool bind_args(sqlite3_stmt *stmt, Array args);

@@ -354,3 +354,4 @@ compile_commands.json
 *.o
 .sconsign.dblite
 .vscode
+*.obj
