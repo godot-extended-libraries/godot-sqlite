@@ -4,6 +4,157 @@
 #include "editor/project_settings_editor.h"
 #include <stdlib.h>
 
+Array fast_parse_row(sqlite3_stmt *stmt) {
+	Array result;
+
+	// Get column count
+	const int col_count = sqlite3_column_count(stmt);
+
+	// Fetch all column
+	for (int i = 0; i < col_count; i++) {
+		// Value
+		const int col_type = sqlite3_column_type(stmt, i);
+		Variant value;
+
+		// Get column value
+		switch (col_type) {
+			case SQLITE_INTEGER:
+				value = Variant(sqlite3_column_int(stmt, i));
+				break;
+
+			case SQLITE_FLOAT:
+				value = Variant(sqlite3_column_double(stmt, i));
+				break;
+
+			case SQLITE_TEXT: {
+				int size = sqlite3_column_bytes(stmt, i);
+				String str = String::utf8((const char *)sqlite3_column_text(stmt, i), size);
+				value = Variant(str);
+				break;
+			}
+			case SQLITE_BLOB: {
+				PoolByteArray arr;
+				int size = sqlite3_column_bytes(stmt, i);
+				arr.resize(size);
+				memcpy(arr.write().ptr(), sqlite3_column_blob(stmt, i), size);
+				value = Variant(arr);
+				break;
+			}
+			case SQLITE_NULL: {
+				// Nothing to do.
+			} break;
+			default:
+				ERR_PRINTS("This kind of data is not yet supported: " + itos(col_type));
+				break;
+		}
+
+		result.push_back(value);
+	}
+
+	return result;
+}
+
+SQLiteQuery::SQLiteQuery() {
+}
+
+SQLiteQuery::~SQLiteQuery() {
+	finalize();
+}
+
+void SQLiteQuery::init(SQLite *p_db, const String &p_query) {
+	db = p_db;
+	query = p_query;
+	stmt = nullptr;
+}
+
+bool SQLiteQuery::is_ready() const {
+	return stmt != nullptr;
+}
+
+String SQLiteQuery::get_last_error_message() const {
+	ERR_FAIL_COND_V(db == nullptr, "Database is undefined.");
+	return db->get_last_error_message();
+}
+
+Variant SQLiteQuery::execute(const Array p_args) {
+	if (is_ready() == false) {
+		ERR_FAIL_COND_V(prepare() == false, Variant());
+	}
+
+	// At this point stmt can't be null.
+	CRASH_COND(stmt == nullptr);
+
+	// Error occurred during argument binding
+	if (!SQLite::bind_args(stmt, p_args)) {
+		ERR_FAIL_V_MSG(Variant(), "Error during arguments set: " + get_last_error_message());
+	}
+
+	// Execute the query.
+	Array result;
+	while (true) {
+		const int res = sqlite3_step(stmt);
+		if (res == SQLITE_ROW) {
+			// Collect the result.
+			result.append(fast_parse_row(stmt));
+		} else if (res == SQLITE_DONE) {
+			// Nothing more to do.
+			break;
+		} else {
+			// Error
+			ERR_BREAK_MSG(true, "There was an error during an SQL execution: " + get_last_error_message());
+		}
+	}
+
+	if (SQLITE_OK != sqlite3_reset(stmt)) {
+		finalize();
+		ERR_FAIL_V_MSG(result, "Was not possible to reset the query: " + get_last_error_message());
+	}
+
+	return result;
+}
+
+Variant SQLiteQuery::batch_execute(Array p_rows) {
+	Array res;
+	for (int i = 0; i < p_rows.size(); i += 1) {
+		ERR_FAIL_COND_V_MSG(p_rows[i].get_type() != Variant::ARRAY, Variant(), "An Array of Array is exepected.");
+		Variant r = execute(p_rows[i]);
+		if (unlikely(r.get_type() == Variant::NIL)) {
+			// An error occurred, the error is already logged.
+			return Variant();
+		}
+		res.push_back(r);
+	}
+	return res;
+}
+
+bool SQLiteQuery::prepare() {
+
+	ERR_FAIL_COND_V(stmt != nullptr, false);
+	ERR_FAIL_COND_V(db == nullptr, false);
+	ERR_FAIL_COND_V(query == "", false);
+
+	// Prepare the statement
+	int result = sqlite3_prepare_v2(db->get_handler(), query.utf8().ptr(), -1, &stmt, nullptr);
+
+	// Cannot prepare query!
+	ERR_FAIL_COND_V_MSG(result != SQLITE_OK, false, "SQL Error: " + db->get_last_error_message());
+
+	return true;
+}
+
+void SQLiteQuery::finalize() {
+	if (stmt) {
+		sqlite3_finalize(stmt);
+		stmt = nullptr;
+	}
+}
+
+void SQLiteQuery::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("get_last_error_message"), &SQLiteQuery::get_last_error_message);
+	ClassDB::bind_method(D_METHOD("execute", "arguments"), &SQLiteQuery::execute, DEFVAL(Array()));
+	ClassDB::bind_method(D_METHOD("batch_execute", "rows"), &SQLiteQuery::batch_execute);
+}
+
 SQLite::SQLite() {
 	db = nullptr;
 	memory_read = false;
@@ -41,6 +192,13 @@ bool SQLite::open(String path) {
 
 	return true;
 }
+
+bool SQLite::open_in_memory() {
+	int result = sqlite3_open(":memory:", &db);
+	ERR_FAIL_COND_V_MSG(result != SQLITE_OK, false, "Cannot open database in memory, error:" + itos(result));
+	return true;
+}
+
 /*
   Open the database and initialize memory buffer.
   @param name Name of the database.
@@ -77,10 +235,22 @@ bool SQLite::open_buffered(String name, PoolByteArray buffers, int64_t size) {
 }
 
 void SQLite::close() {
+	// Finalize all queries before close the DB.
+	// Reverse order because I need to remove the not available queries.
+	for (uint32_t i = queries.size(); i > 0; i -= 1) {
+		SQLiteQuery *query = Object::cast_to<SQLiteQuery>(queries[i - 1]->get_ref());
+		if (query != nullptr) {
+			query->finalize();
+		} else {
+			memdelete(queries[i - 1]);
+			queries.remove(i - 1);
+		}
+	}
+
 	if (db) {
 		// Cannot close database!
 		if (sqlite3_close_v2(db) != SQLITE_OK) {
-			print_error("Cannot close database!");
+			print_error("Cannot close database: " + get_last_error_message());
 		} else {
 			db = nullptr;
 		}
@@ -98,21 +268,14 @@ sqlite3_stmt *SQLite::prepare(const char *query) {
 	// Get database pointer
 	sqlite3 *dbs = get_handler();
 
-	if (!dbs) {
-		print_error("Cannot prepare query! Database is not opened.");
-		return nullptr;
-	}
+	ERR_FAIL_COND_V_MSG(dbs == nullptr, nullptr, "Cannot prepare query! Database is not opened.");
 
 	// Prepare the statement
-	sqlite3_stmt *stmt;
+	sqlite3_stmt *stmt = nullptr;
 	int result = sqlite3_prepare_v2(dbs, query, -1, &stmt, nullptr);
 
 	// Cannot prepare query!
-	if (result != SQLITE_OK) {
-		print_error("SQL Error: " + String(sqlite3_errmsg(dbs)));
-		return nullptr;
-	}
-
+	ERR_FAIL_COND_V_MSG(result != SQLITE_OK, nullptr, "SQL Error: " + get_last_error_message());
 	return stmt;
 }
 
@@ -120,7 +283,7 @@ bool SQLite::bind_args(sqlite3_stmt *stmt, Array args) {
 	// Check parameter count
 	int param_count = sqlite3_bind_parameter_count(stmt);
 	if (param_count != args.size()) {
-		print_error("Query failed; expected " + itos(param_count) + " arguments, got " + itos(args.size()));
+		print_error("SQLiteQuery failed; expected " + itos(param_count) + " arguments, got " + itos(args.size()));
 		return false;
 	}
 
@@ -158,7 +321,7 @@ bool SQLite::bind_args(sqlite3_stmt *stmt, Array args) {
 		}
 
 		if (retcode != SQLITE_OK) {
-			print_error("Query failed, an error occured while binding argument" + itos(i + 1) + " of " + itos(args.size()) + " (SQLite errcode " + itos(retcode) + ")");
+			print_error("SQLiteQuery failed, an error occured while binding argument" + itos(i + 1) + " of " + itos(args.size()) + " (SQLite errcode " + itos(retcode) + ")");
 			return false;
 		}
 	}
@@ -170,14 +333,12 @@ bool SQLite::query_with_args(String query, Array args) {
 	sqlite3_stmt *stmt = prepare(query.utf8().get_data());
 
 	// Failed to prepare the query
-	if (!stmt) {
-		return false;
-	}
+	ERR_FAIL_COND_V_MSG(stmt == nullptr, false, "SQLiteQuery preparation error: " + get_last_error_message());
 
 	// Error occurred during argument binding
 	if (!bind_args(stmt, args)) {
 		sqlite3_finalize(stmt);
-		return false;
+		ERR_FAIL_V_MSG(false, "Error during arguments bind: " + get_last_error_message());
 	}
 
 	// Evaluate the sql query
@@ -185,6 +346,18 @@ bool SQLite::query_with_args(String query, Array args) {
 	sqlite3_finalize(stmt);
 
 	return true;
+}
+
+Ref<SQLiteQuery> SQLite::create_query(String p_query) {
+	Ref<SQLiteQuery> query;
+	query.instance();
+	query->init(this, p_query);
+
+	WeakRef *wr = memnew(WeakRef);
+	wr->set_obj(query.ptr());
+	queries.push_back(wr);
+
+	return query;
 }
 
 bool SQLite::query(String query) {
@@ -299,17 +472,33 @@ Array SQLite::fetch_assoc_with_args(String query, Array args) {
 	return fetch_rows(query, args, RESULT_ASSOC);
 }
 
+String SQLite::get_last_error_message() const {
+	return sqlite3_errmsg(get_handler());
+}
+
 SQLite::~SQLite() {
 	// Close database
 	close();
+	// Make sure to invalidate all associated queries.
+	for (uint32_t i = 0; i < queries.size(); i += 1) {
+		SQLiteQuery *query = Object::cast_to<SQLiteQuery>(queries[i]->get_ref());
+		if (query != nullptr) {
+			query->init(nullptr, "");
+		}
+	}
 }
 
 void SQLite::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("open", "path"), &SQLite::open);
+	ClassDB::bind_method(D_METHOD("open_in_memory"), &SQLite::open_in_memory);
 	ClassDB::bind_method(D_METHOD("open_buffered", "path", "buffers", "size"), &SQLite::open_buffered);
+
+	ClassDB::bind_method(D_METHOD("close"), &SQLite::close);
+
+	ClassDB::bind_method(D_METHOD("create_query", "statement"), &SQLite::create_query);
+
 	ClassDB::bind_method(D_METHOD("query", "statement"), &SQLite::query);
 	ClassDB::bind_method(D_METHOD("query_with_args", "statement", "args"), &SQLite::query_with_args);
-	ClassDB::bind_method(D_METHOD("close"), &SQLite::close);
 	ClassDB::bind_method(D_METHOD("fetch_array", "statement"), &SQLite::fetch_array);
 	ClassDB::bind_method(D_METHOD("fetch_array_with_args", "statement", "args"), &SQLite::fetch_array_with_args);
 	ClassDB::bind_method(D_METHOD("fetch_assoc", "statement"), &SQLite::fetch_assoc);
