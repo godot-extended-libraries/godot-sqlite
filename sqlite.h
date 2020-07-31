@@ -66,6 +66,9 @@ public:
 	/// Returns: `[[0,1], [1,2], [2,3]]`
 	Variant batch_execute(Array p_rows);
 
+	/// Return the list of columns of this query.
+	Array get_columns()
+
 	void finalize();
 
 private:

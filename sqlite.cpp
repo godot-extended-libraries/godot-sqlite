@@ -127,6 +127,28 @@ Variant SQLiteQuery::batch_execute(Array p_rows) {
 	return res;
 }
 
+Array SQLiteQuery::get_columns() {
+	if (is_ready() == false) {
+		ERR_FAIL_COND_V(prepare() == false, Array());
+	}
+
+	// At this point stmt can't be null.
+	CRASH_COND(stmt == nullptr);
+
+	Array res;
+	const int col_count = sqlite3_column_count(stmt);
+	res.resize(col_count);
+
+	// Fetch all column
+	for (int i = 0; i < col_count; i++) {
+		// Key name
+		const char *col_name = sqlite3_column_name(stmt, i);
+		res[i] = String(col_name);
+	}
+
+	return res;
+}
+
 bool SQLiteQuery::prepare() {
 
 	ERR_FAIL_COND_V(stmt != nullptr, false);
@@ -153,6 +175,7 @@ void SQLiteQuery::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_last_error_message"), &SQLiteQuery::get_last_error_message);
 	ClassDB::bind_method(D_METHOD("execute", "arguments"), &SQLiteQuery::execute, DEFVAL(Array()));
 	ClassDB::bind_method(D_METHOD("batch_execute", "rows"), &SQLiteQuery::batch_execute);
+	ClassDB::bind_method(D_METHOD("get_columns"), &SQLiteQuery::get_columns)
 }
 
 SQLite::SQLite() {
