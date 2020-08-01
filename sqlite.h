@@ -67,7 +67,7 @@ public:
 	Variant batch_execute(Array p_rows);
 
 	/// Return the list of columns of this query.
-	Array get_columns()
+	Array get_columns();
 
 	void finalize();
 

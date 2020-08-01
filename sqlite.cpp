@@ -175,7 +175,7 @@ void SQLiteQuery::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_last_error_message"), &SQLiteQuery::get_last_error_message);
 	ClassDB::bind_method(D_METHOD("execute", "arguments"), &SQLiteQuery::execute, DEFVAL(Array()));
 	ClassDB::bind_method(D_METHOD("batch_execute", "rows"), &SQLiteQuery::batch_execute);
-	ClassDB::bind_method(D_METHOD("get_columns"), &SQLiteQuery::get_columns)
+	ClassDB::bind_method(D_METHOD("get_columns"), &SQLiteQuery::get_columns);
 }
 
 SQLite::SQLite() {
