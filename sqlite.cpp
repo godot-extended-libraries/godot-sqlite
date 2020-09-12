@@ -32,10 +32,10 @@ Array fast_parse_row(sqlite3_stmt *stmt) {
 				break;
 			}
 			case SQLITE_BLOB: {
-				PoolByteArray arr;
+				PackedByteArray arr;
 				int size = sqlite3_column_bytes(stmt, i);
 				arr.resize(size);
-				memcpy(arr.write().ptr(), sqlite3_column_blob(stmt, i), size);
+				memcpy(arr.ptrw(), sqlite3_column_blob(stmt, i), size);
 				value = Variant(arr);
 				break;
 			}
@@ -43,7 +43,7 @@ Array fast_parse_row(sqlite3_stmt *stmt) {
 				// Nothing to do.
                         } break;
 			default:
-				ERR_PRINTS("This kind of data is not yet supported: " + itos(col_type));
+				ERR_PRINT("This kind of data is not yet supported: " + itos(col_type));
 				break;
 		}
 
@@ -174,7 +174,7 @@ void SQLiteQuery::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_last_error_message"), &SQLiteQuery::get_last_error_message);
 	ClassDB::bind_method(D_METHOD("execute", "arguments"), &SQLiteQuery::execute, DEFVAL(Array()));
 	ClassDB::bind_method(D_METHOD("batch_execute", "rows"), &SQLiteQuery::batch_execute);
-	ClassDB::bind_method(D_METHOD("get_columns"), &SQLiteQuery::get_columns)
+	ClassDB::bind_method(D_METHOD("get_columns"), &SQLiteQuery::get_columns);
 }
 
 SQLite::SQLite() {
