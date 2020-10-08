@@ -3,6 +3,7 @@ Import('env')
 module_env = env.Clone()
 
 module_env.Prepend(CPPPATH=['#thirdparty/sqlite/thirdparty/sqlite'])
+module_env.Append(CPPDEFINES=["SQLITE_ENABLE_JSON1"])
 
 env_thirdparty = module_env.Clone()
 env_thirdparty.disable_warnings()
