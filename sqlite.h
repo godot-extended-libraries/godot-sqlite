@@ -1,9 +1,9 @@
 #ifndef GDSQLITE_H
 #define GDSQLITE_H
 
-#include "core/engine.h"
-#include "core/local_vector.h"
-#include "core/reference.h"
+#include "core/config/engine.h"
+#include "core/templates/local_vector.h"
+#include "core/object/reference.h"
 
 // SQLite3
 #include "thirdparty/sqlite/spmemvfs.h"
