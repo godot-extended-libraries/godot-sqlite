@@ -1,5 +1,5 @@
 #include "sqlite.h"
-#include "core/bind/core_bind.h"
+#include "core/core_bind.h"
 #include "core/os/os.h"
 #include "editor/project_settings_editor.h"
 
