@@ -1,6 +1,6 @@
 #include "register_types.h"
 
-#include "core/class_db.h"
+#include "core/object/class_db.h"
 #include "sqlite.h"
 
 void register_sqlite_types() {
