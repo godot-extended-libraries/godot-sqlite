@@ -40,7 +40,7 @@ func open_database(db : SQLite, path : String) -> bool:
 		var file = File.new();
 		if (file.open(path, file.READ) != OK):
 			return false;
-		var size = file.get_len();
+		var size = file.get_length();
 		var buffers = file.get_buffer(size);
 		return db.open_buffered(path, buffers, size);
 	

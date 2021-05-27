@@ -24,7 +24,7 @@ bool SQLite::open(String path) {
 			print_error("Cannot open packed database!");
 			return false;
 		}
-		int64_t size = dbfile->get_len();
+		int64_t size = dbfile->get_length();
 		PackedByteArray buffer = dbfile->get_buffer(size);
 		return open_buffered(path, buffer, size);
 	}
