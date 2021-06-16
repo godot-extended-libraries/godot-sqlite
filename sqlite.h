@@ -2,14 +2,14 @@
 #define GDSQLITE_H
 
 #include "core/config/engine.h"
-#include "core/object/reference.h"
+#include "core/object/ref_counted.h"
 
 // SQLite3
 #include "thirdparty/sqlite/spmemvfs.h"
 #include "thirdparty/sqlite/sqlite3.h"
 
-class SQLite : public Reference {
-	GDCLASS(SQLite, Reference);
+class SQLite : public RefCounted {
+	GDCLASS(SQLite, RefCounted);
 
 private:
 	// sqlite handler
