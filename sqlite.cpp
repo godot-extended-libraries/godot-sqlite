@@ -44,7 +44,7 @@ Array fast_parse_row(sqlite3_stmt *stmt) {
 				// Nothing to do.
 			} break;
 			default:
-				ERR_PRINTS("This kind of data is not yet supported: " + itos(col_type));
+				ERR_PRINT("This kind of data is not yet supported: " + itos(col_type));
 				break;
 		}
 
