@@ -372,7 +372,7 @@ bool SQLite::query_with_args(String query, Array args) {
 
 Ref<SQLiteQuery> SQLite::create_query(String p_query) {
 	Ref<SQLiteQuery> query;
-	query.instance();
+	query.instantiate();
 	query->init(this, p_query);
 
 	WeakRef *wr = memnew(WeakRef);
