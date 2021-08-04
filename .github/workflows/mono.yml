@@ -104,7 +104,7 @@ jobs:
       # Clone our module under the correct directory
       - uses: actions/checkout@v2
         with:
-          path: modules/voxel
+          path: modules/sqlite
 
       # Azure repositories are not reliable, we need to prevent azure giving us packages.
       - name: Make apt sources.list use the default Ubuntu repositories

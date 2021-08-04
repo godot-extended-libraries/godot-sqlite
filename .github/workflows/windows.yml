@@ -28,7 +28,7 @@ jobs:
       # Clone our module under the correct directory
       - uses: actions/checkout@v2
         with:
-          path: modules/vox
+          path: modules/sqlite
 
       # Upload cache on completion and check it out now
       # Editing this is pretty dangerous for Windows since it can break and needs to be properly tested with a fresh cache.
