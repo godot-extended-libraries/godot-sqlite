@@ -42,7 +42,7 @@ jobs:
 
       # Upload cache on completion and check it out now
       - name: Load .scons_cache directory
-        id: linux-editor-sqlite-cache
+        id: linux-editor-cache
         uses: actions/cache@v2
         with:
           path: ${{github.workspace}}/.scons_cache/
