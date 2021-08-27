@@ -192,9 +192,9 @@ bool SQLite::open(String path) {
 		return false;
 
 	if (!Engine::get_singleton()->is_editor_hint() && path.begins_with("res://")) {
-		Ref<_File> dbfile;
+		Ref<core_bind::File> dbfile;
 		dbfile.instantiate();
-		if (dbfile->open(path, _File::READ) != Error::OK) {
+		if (dbfile->open(path, core_bind::File::READ) != Error::OK) {
 			print_error("Cannot open packed database!");
 			return false;
 		}
