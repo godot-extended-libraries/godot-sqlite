@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SQLiteQuery" inherits="RefCounted" version="4.0">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="batch_execute">
+			<return type="Variant" />
+			<argument index="0" name="rows" type="Array" />
+			<description>
+			</description>
+		</method>
+		<method name="execute">
+			<return type="Variant" />
+			<argument index="0" name="arguments" type="Array" default="[]" />
+			<description>
+			</description>
+		</method>
+		<method name="get_columns">
+			<return type="Array" />
+			<description>
+			</description>
+		</method>
+		<method name="get_last_error_message" qualifiers="const">
+			<return type="String" />
+			<description>
+			</description>
+		</method>
+	</methods>
+</class>
