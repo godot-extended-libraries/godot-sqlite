@@ -87,7 +87,7 @@ private:
   spmemvfs_db_t p_db;
   bool memory_read;
 
-  LocalVector<WeakRef *> queries;
+  LocalVector<WeakRef *, uint32_t, true> queries;
 
   sqlite3_stmt *prepare(const char *statement);
   Array fetch_rows(String query, Array args, int result_type = RESULT_BOTH);
