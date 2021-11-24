@@ -270,11 +270,11 @@ void SQLite::close() {
   // Reverse order because I need to remove the not available queries.
   for (uint32_t i = queries.size(); i > 0; i -= 1) {
     SQLiteQuery *query =
-        Object::cast_to<SQLiteQuery>(queries.write[i - 1]->get_ref());
+        Object::cast_to<SQLiteQuery>(queries[i - 1]->get_ref());
     if (query != nullptr) {
       query->finalize();
     } else {
-      memdelete(queries.write[i - 1]);
+      memdelete(queries[i - 1]);
       queries.remove(i - 1);
     }
   }
