@@ -275,7 +275,7 @@ void SQLite::close() {
       query->finalize();
     } else {
       memdelete(queries[i - 1]);
-      queries.remove(i - 1);
+      queries.remove_at(i - 1);
     }
   }
 
