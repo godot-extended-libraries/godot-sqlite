@@ -32,9 +32,9 @@ func load_db():
 	var result = db.fetch_assoc_with_args(select_data_query, [0]);
 	if result:
 		var data = bytes2var(result[0]["dict"]);
-		print("Byte data retrieved. Time of creation: %d:%d:%d" % 
-			[data["time_created"]["hour"], 
-			data["time_created"]["minute"], 
+		print("Byte data retrieved. Time of creation: %d:%d:%d" %
+			[data["time_created"]["hour"],
+			data["time_created"]["minute"],
 			data["time_created"]["second"]]);
 	else:
 		print("Failed to retrieve byte data");
@@ -43,9 +43,9 @@ func create_db():
 	db.open(db_path);
 	var data = Dictionary();
 	data["time_created"] = OS.get_time(true);
-	print("New byte data created. Current time: %d:%d:%d" % 
-		[data["time_created"]["hour"], 
-		data["time_created"]["minute"], 
+	print("New byte data created. Current time: %d:%d:%d" %
+		[data["time_created"]["hour"],
+		data["time_created"]["minute"],
 		data["time_created"]["second"]]);
 	var bytes = var2bytes(data);
 	print(bytes.size());

@@ -149,7 +149,6 @@ Array SQLiteQuery::get_columns() {
 }
 
 bool SQLiteQuery::prepare() {
-
   ERR_FAIL_COND_V(stmt != nullptr, false);
   ERR_FAIL_COND_V(db == nullptr, false);
   ERR_FAIL_COND_V(query == "", false);
