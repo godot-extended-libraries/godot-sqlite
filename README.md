@@ -28,5 +28,5 @@ mv sqlite godot/modules/
 
 ## Attribution
 
-This engine module for Godot is based on gdsqlite-native
+This engine module for Godot is based on gdsqlite-native by Khairul Hidayat in 2017.
 
