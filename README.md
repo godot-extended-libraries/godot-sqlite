@@ -2,6 +2,9 @@
 
 [SQLite3](https://www.sqlite.org/) wrapper for Godot Engine
 
+## sqleet-fts Branch
+This branch is an implementation of sqleet (for encryption) with fts5 (full text search) enabled. It's implemented for Godot 4.
+
 ## Installation
 
 Download the latest [release](https://github.com/godot-extended-libraries/godot-sqlite/releases) of this module and uncompress it to your modules directory as `sqlite`.
