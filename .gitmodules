@@ -1,3 +1,0 @@
-[submodule "sqleet"]
-	path = thirdparty/sqleet
-	url = https://github.com/resilar/sqleet.git
