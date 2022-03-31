@@ -6,8 +6,8 @@
 #include "core/templates/local_vector.h"
 
 // SQLite3
-#include "thirdparty/sqlite/spmemvfs.h"
-#include "thirdparty/sqlite/sqlite3.h"
+#include "thirdparty/vfs/spmemvfs.h"
+#include "thirdparty/sqleet/sqleet.h"
 
 class SQLite;
 
@@ -107,10 +107,12 @@ public:
   ~SQLite();
 
   // methods
-  bool open(String path);
+  bool open(String path, String password);
   bool open_in_memory();
-  bool open_buffered(String name, PackedByteArray buffers, int64_t size);
+  bool open_buffered(String name, PackedByteArray buffers, int64_t size, String password);
   void close();
+
+  bool rekey_db(String password);
 
   /// Compiles the query into bytecode and returns an handle to it for a faster
   /// execution.

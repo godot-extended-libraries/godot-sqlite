@@ -192,7 +192,7 @@ SQLite::SQLite() {
         @param path The database resource path.
         @return status
 */
-bool SQLite::open(String path) {
+bool SQLite::open(String path, String password) {
   if (!path.strip_edges().length())
     return false;
 
@@ -206,7 +206,7 @@ bool SQLite::open(String path) {
     }
     int64_t size = dbfile->get_length();
     PackedByteArray buffer = dbfile->get_buffer(size);
-    return open_buffered(path, buffer, size);
+    return open_buffered(path, buffer, size, password);
   }
 
   String real_path =
@@ -217,6 +217,21 @@ bool SQLite::open(String path) {
   if (result != SQLITE_OK) {
     print_error("Cannot open database!");
     return false;
+  }
+
+  if (password.length() > 0)
+  {
+	  const char* char_key = password.utf8().get_data();
+	  result = sqlite3_key(db, char_key, strlen(char_key));
+	  if (result != SQLITE_OK)
+	  {
+		  /* Returned error is always SQLITE_AUTH (23) which is caused by either: */
+		  /* - Supplying a wrong password */
+		  /* - Attempting to open an unencrypted database using a password */
+		  print_error("Authorization denied due to incorrect password! Was the database previously encrypted?");
+		  /* Note for self: Unsure if the database should automatically be closed here or not... */
+		  return false;
+	  }
   }
 
   return true;
@@ -236,7 +251,7 @@ bool SQLite::open_in_memory() {
   @param size Size of the database;
   @return status
 */
-bool SQLite::open_buffered(String name, PackedByteArray buffers, int64_t size) {
+bool SQLite::open_buffered(String name, PackedByteArray buffers, int64_t size, String password) {
   if (!name.strip_edges().length()) {
     return false;
   }
@@ -261,6 +276,22 @@ bool SQLite::open_buffered(String name, PackedByteArray buffers, int64_t size) {
   }
 
   memory_read = true;
+
+  if (password.length() > 0)
+  {
+	  const char* char_key = password.utf8().get_data();
+	  int err = sqlite3_key(p_db.handle, char_key, strlen(char_key));
+	  if (err != SQLITE_OK)
+	  {
+		  /* Returned error is always SQLITE_AUTH (23) which is caused by either: */
+		  /* - Supplying a wrong password */
+		  /* - Attempting to open an unencrypted database using a password */
+		  print_error("SQLite Error: Authorization denied due to incorrect password! Was the database previously encrypted?");
+		  /* Note for self: Unsure if the database should automatically be closed here or not... */
+		  return false;
+	  }
+  }
+
   return true;
 }
 
@@ -293,6 +324,29 @@ void SQLite::close() {
     spmemvfs_env_fini();
     memory_read = false;
   }
+}
+
+bool SQLite::rekey_db(String password)
+{
+	sqlite3* dbs = get_handler();
+
+	if (memory_read)
+	{
+		print_error("SQLite Error : Can't rekey packed databases. Consider moving the database outside res:// (ex: user://).");
+		return false;
+	}
+
+	const char* char_key = password.utf8().get_data();
+	int result = sqlite3_rekey(dbs, char_key, strlen(char_key));
+
+	if (result != SQLITE_OK)
+	{
+		print_error("SQLite Error : Failed to change database password!");
+		return false;
+	}
+
+	print_line("Password changed succesfully!");
+	return true;
 }
 
 sqlite3_stmt *SQLite::prepare(const char *query) {
@@ -536,10 +590,12 @@ SQLite::~SQLite() {
 }
 
 void SQLite::_bind_methods() {
-  ClassDB::bind_method(D_METHOD("open", "path"), &SQLite::open);
+  ClassDB::bind_method(D_METHOD("open", "path", "password"), &SQLite::open);
   ClassDB::bind_method(D_METHOD("open_in_memory"), &SQLite::open_in_memory);
-  ClassDB::bind_method(D_METHOD("open_buffered", "path", "buffers", "size"),
+  ClassDB::bind_method(D_METHOD("open_buffered", "path", "buffers", "size", "password"),
                        &SQLite::open_buffered);
+
+  ClassDB::bind_method(D_METHOD("rekey_db", "password"), &SQLite::rekey_db);
 
   ClassDB::bind_method(D_METHOD("close"), &SQLite::close);
 
