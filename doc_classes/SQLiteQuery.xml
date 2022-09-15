@@ -9,13 +9,13 @@
 	<methods>
 		<method name="batch_execute">
 			<return type="Variant" />
-			<argument index="0" name="rows" type="Array" />
+			<param index="0" name="rows" type="Array" />
 			<description>
 			</description>
 		</method>
 		<method name="execute">
 			<return type="Variant" />
-			<argument index="0" name="arguments" type="Array" default="[]" />
+			<param index="0" name="arguments" type="Array" default="[]" />
 			<description>
 			</description>
 		</method>

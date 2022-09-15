@@ -18,13 +18,13 @@
 		</method>
 		<method name="create_query">
 			<return type="SQLiteQuery" />
-			<argument index="0" name="statement" type="String" />
+			<param index="0" name="statement" type="String" />
 			<description>
 			</description>
 		</method>
 		<method name="fetch_array">
 			<return type="Array" />
-			<argument index="0" name="statement" type="String" />
+			<param index="0" name="statement" type="String" />
 			<description>
 				Returns the result of [code]statement[/code] as an [Array] of rows.
 				Each row is a [Dictionary], and each column can be accessed with either its name or its column position.
@@ -32,8 +32,8 @@
 		</method>
 		<method name="fetch_array_with_args">
 			<return type="Array" />
-			<argument index="0" name="statement" type="String" />
-			<argument index="1" name="args" type="Array" />
+			<param index="0" name="statement" type="String" />
+			<param index="1" name="args" type="Array" />
 			<description>
 				Returns the result of [code]statement[/code] as an [Array] of rows, substituting each [code]?[/code] with [code]args[/code].
 				Each row is a [Dictionary], and each column can be accessed with either its name or its column position.
@@ -41,7 +41,7 @@
 		</method>
 		<method name="fetch_assoc">
 			<return type="Array" />
-			<argument index="0" name="statement" type="String" />
+			<param index="0" name="statement" type="String" />
 			<description>
 				Returns the result of [code]statement[/code] as an [Array] of rows.
 				Each row is a [Dictionary], and the keys are the names of the columns.
@@ -49,8 +49,8 @@
 		</method>
 		<method name="fetch_assoc_with_args">
 			<return type="Array" />
-			<argument index="0" name="statement" type="String" />
-			<argument index="1" name="args" type="Array" />
+			<param index="0" name="statement" type="String" />
+			<param index="1" name="args" type="Array" />
 			<description>
 				Returns the result of [code]statement[/code] as an [Array] of rows, substituting each [code]?[/code] with [code]args[/code].
 				Each row is a [Dictionary], and the keys are the names of the columns.
@@ -58,7 +58,7 @@
 		</method>
 		<method name="open">
 			<return type="bool" />
-			<argument index="0" name="path" type="String" />
+			<param index="0" name="path" type="String" />
 			<description>
 				Opens the database file at the given path. Returns [code]true[/code] if the database was successfully opened, [code]false[/code] otherwise.
 				If the path starts with "res://", it will use [method open_buffered] implicitly.
@@ -66,9 +66,9 @@
 		</method>
 		<method name="open_buffered">
 			<return type="bool" />
-			<argument index="0" name="path" type="String" />
-			<argument index="1" name="buffers" type="PackedByteArray" />
-			<argument index="2" name="size" type="int" />
+			<param index="0" name="path" type="String" />
+			<param index="1" name="buffers" type="PackedByteArray" />
+			<param index="2" name="size" type="int" />
 			<description>
 				Opens a temporary database with the data in [code]buffer[/code]. Used for opening databases stored in res:// or compressed databases. Returns [code]true[/code] if the database was opened successfully.
 				Can be written to, but the changes are NOT saved!
@@ -81,15 +81,15 @@
 		</method>
 		<method name="query">
 			<return type="bool" />
-			<argument index="0" name="statement" type="String" />
+			<param index="0" name="statement" type="String" />
 			<description>
 				Queries the database with the given SQL statement. Returns [code]true[/code] if no errors occurred.
 			</description>
 		</method>
 		<method name="query_with_args">
 			<return type="bool" />
-			<argument index="0" name="statement" type="String" />
-			<argument index="1" name="args" type="Array" />
+			<param index="0" name="statement" type="String" />
+			<param index="1" name="args" type="Array" />
 			<description>
 				Queries the database with the given SQL statement, replacing any [code]?[/code] with arguments supplied by [code]args[/code]. Returns [code]true[/code] if no errors occurred.
 			</description>
