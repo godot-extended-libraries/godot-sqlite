@@ -198,14 +198,16 @@ bool SQLite::open(String path) {
 
   if (!Engine::get_singleton()->is_editor_hint() &&
       path.begins_with("res://")) {
-    Ref<core_bind::File> dbfile;
-    dbfile.instantiate();
-    if (dbfile->open(path, core_bind::File::READ) != Error::OK) {
+    Ref<FileAccess> dbfile = FileAccess::open(path, FileAccess::READ);
+    if (dbfile.is_null()) {
       print_error("Cannot open packed database!");
       return false;
     }
     int64_t size = dbfile->get_length();
-    PackedByteArray buffer = dbfile->get_buffer(size);
+    PackedByteArray buffer;
+    buffer.resize(size);
+    buffer.fill(0);
+    dbfile->get_buffer(buffer.ptrw(), size);
     return open_buffered(path, buffer, size);
   }
 
