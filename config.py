@@ -8,8 +8,8 @@ def configure(env):
 
 def get_doc_classes():
     return [
-        "SQLite",
-        "SQLiteQuery",
+        "MVSQLite",
+        "MVSQLiteQuery",
     ]
 
 def get_doc_path():
