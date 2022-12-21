@@ -2,10 +2,6 @@
 
 [SQLite3](https://www.sqlite.org/) wrapper for Godot Engine
 
-## Installation
-
-Download the latest [release](https://github.com/godot-extended-libraries/godot-sqlite/releases) of this module and uncompress it to your modules directory as `sqlite`.
-
 ## Git Installation
 
 Download using git.
