@@ -7,7 +7,7 @@
 Download using git.
 
 ```
-git clone https://github.com/godot-extended-libraries/godot-sqlite.git sqlite
+git clone https://github.com/V-Sekai/godot-sqlite sqlite
 ```
 
 Move to the modules folder inside of the Godot Engine source.
