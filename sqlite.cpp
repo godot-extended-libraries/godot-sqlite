@@ -374,28 +374,6 @@ bool SQLite::bind_args(sqlite3_stmt *stmt, Array args) {
   return true;
 }
 
-bool SQLite::query_with_args(String query, Array args) {
-  sqlite3_stmt *stmt = prepare(query.utf8().get_data());
-
-  // Failed to prepare the query
-  ERR_FAIL_COND_V_MSG(stmt == nullptr, false,
-                      "SQLiteQuery preparation error: " +
-                          get_last_error_message());
-
-  // Error occurred during argument binding
-  if (!bind_args(stmt, args)) {
-    sqlite3_finalize(stmt);
-    ERR_FAIL_V_MSG(false,
-                   "Error during arguments bind: " + get_last_error_message());
-  }
-
-  // Evaluate the sql query
-  sqlite3_step(stmt);
-  sqlite3_finalize(stmt);
-
-  return true;
-}
-
 Ref<SQLiteQuery> SQLite::create_query(String p_query) {
   Ref<SQLiteQuery> query;
   query.instantiate();
@@ -406,10 +384,6 @@ Ref<SQLiteQuery> SQLite::create_query(String p_query) {
   queries.push_back(wr);
 
   return query;
-}
-
-bool SQLite::query(String query) {
-  return this->query_with_args(query, Array());
 }
 
 Array SQLite::fetch_rows(String statement, Array args, int result_type) {
@@ -505,22 +479,6 @@ Dictionary SQLite::parse_row(sqlite3_stmt *stmt, int result_type) {
   return result;
 }
 
-Array SQLite::fetch_array(String query) {
-  return fetch_rows(query, Array(), RESULT_BOTH);
-}
-
-Array SQLite::fetch_array_with_args(String query, Array args) {
-  return fetch_rows(query, args, RESULT_BOTH);
-}
-
-Array SQLite::fetch_assoc(String query) {
-  return fetch_rows(query, Array(), RESULT_ASSOC);
-}
-
-Array SQLite::fetch_assoc_with_args(String query, Array args) {
-  return fetch_rows(query, args, RESULT_ASSOC);
-}
-
 String SQLite::get_last_error_message() const {
   return sqlite3_errmsg(get_handler());
 }
@@ -542,21 +500,9 @@ void SQLite::_bind_methods() {
   ClassDB::bind_method(D_METHOD("open_in_memory"), &SQLite::open_in_memory);
   ClassDB::bind_method(D_METHOD("open_buffered", "path", "buffers", "size"),
                        &SQLite::open_buffered);
-
   ClassDB::bind_method(D_METHOD("close"), &SQLite::close);
-
+  ClassDB::bind_method(D_METHOD("get_last_error_message"), &SQLite::get_last_error_message);
   ClassDB::bind_method(D_METHOD("create_query", "statement"),
                        &SQLite::create_query);
-
-  ClassDB::bind_method(D_METHOD("query", "statement"), &SQLite::query);
-  ClassDB::bind_method(D_METHOD("query_with_args", "statement", "args"),
-                       &SQLite::query_with_args);
-  ClassDB::bind_method(D_METHOD("fetch_array", "statement"),
-                       &SQLite::fetch_array);
-  ClassDB::bind_method(D_METHOD("fetch_array_with_args", "statement", "args"),
-                       &SQLite::fetch_array_with_args);
-  ClassDB::bind_method(D_METHOD("fetch_assoc", "statement"),
-                       &SQLite::fetch_assoc);
-  ClassDB::bind_method(D_METHOD("fetch_assoc_with_args", "statement", "args"),
-                       &SQLite::fetch_assoc_with_args);
+                       
 }
