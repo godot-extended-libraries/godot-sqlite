@@ -22,6 +22,11 @@
 			<description>
 			</description>
 		</method>
+		<method name="get_last_error_message" qualifiers="const">
+			<return type="String" />
+			<description>
+			</description>
+		</method>
 		<method name="open">
 			<return type="bool" />
 			<param index="0" name="path" type="String" />
@@ -43,21 +48,6 @@
 		<method name="open_in_memory">
 			<return type="bool" />
 			<description>
-			</description>
-		</method>
-		<method name="query">
-			<return type="bool" />
-			<param index="0" name="statement" type="String" />
-			<description>
-				Queries the database with the given SQL statement. Returns [code]true[/code] if no errors occurred.
-			</description>
-		</method>
-		<method name="query_with_args">
-			<return type="bool" />
-			<param index="0" name="statement" type="String" />
-			<param index="1" name="args" type="Array" />
-			<description>
-				Queries the database with the given SQL statement, replacing any [code]?[/code] with arguments supplied by [code]args[/code]. Returns [code]true[/code] if no errors occurred.
 			</description>
 		</method>
 	</methods>
